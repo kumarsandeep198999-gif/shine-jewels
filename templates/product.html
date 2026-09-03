@@ -1,0 +1,121 @@
+conn.<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ product.name }} - SHINE JEWELS</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        💎 SHINE JEWELS
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="Search jewellery...">
+        <button>🔍</button>
+    </div>
+
+    <div class="header-icons">
+        <span>👤 Account</span>
+        <span>❤️ Wishlist</span>
+        <span>🛒 Cart</span>
+    </div>
+
+</header>
+
+
+<nav class="navbar">
+
+    <a href="/">Home</a>
+    <a href="/gold">Gold</a>
+    <a href="/diamond">Diamond</a>
+    <a href="/earrings">Earrings</a>
+    <a href="/dailywear">Daily Wear</a>
+    <a href="/gemstone">Gemstone</a>
+    <a href="/wedding">Wedding</a>
+    <a href="/gifting">Gifting</a>
+
+</nav>
+
+
+<main class="product-detail">
+
+    <div class="detail-image">
+        {{ product.icon }}
+    </div>
+
+
+    <div class="detail-info">
+
+        <h1>{{ product.name }}</h1>
+
+        <div class="detail-price">
+            ₹{{ product.price }}
+        </div>
+
+        <p>
+            {{ product.description }}
+        </p>
+
+        <hr>
+
+        <h3>Product Details</h3>
+
+        <ul>
+            <li>Premium Quality Jewellery</li>
+            <li>Elegant Design</li>
+            <li>Perfect for Special Occasions</li>
+            <li>Secure Packaging</li>
+        </ul>
+
+        <div class="quantity">
+            <label>Quantity:</label>
+
+            <input type="number"
+                   value="1"
+                   min="1">
+        </div>
+
+        <form method="POST" action="/add-to-cart">
+    <input type="hidden" name="product_name" value="{{ product.name }}">
+    <input type="hidden" name="price" value="{{ product.price }}">
+
+    <button type="submit" class="cart-button">
+        🛒 Add to Cart
+    </button>
+</form>
+
+        <button class="shop-button">
+            ❤️ Add to Wishlist
+        </button>
+
+    </div>
+
+</main>
+
+
+<footer class="footer">
+
+    <h2>💎 SHINE JEWELS</h2>
+
+    <p>
+        Beautiful Jewellery • Trusted Quality • Elegant Designs
+    </p>
+
+    <p>
+        © 2026 SHINE JEWELS. All Rights Reserved.
+    </p>
+
+</footer>
+
+</body>
+</html>

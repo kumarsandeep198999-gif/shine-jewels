@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>SHINE JEWELS</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+    .header-icons {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .header-icons a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .header-icons a:hover {
+        text-decoration: none;
+    }
+
+    .logout-link {
+        cursor: pointer;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- TOP HEADER -->
+<header class="header">
+
+    <div class="logo">
+        💎 SHINE JEWELS
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="Search jewellery...">
+        <button>🔍</button>
+    </div>
+
+    <div class="header-icons">
+
+        {% if session.get("user_id") %}
+
+            <span>👤 {{ session.get("user_name") }}</span>
+
+            <a href="/logout" class="logout-link">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="/register" class="account-link">
+                👤 Account
+            </a>
+
+        {% endif %}
+
+        <span>❤️ Wishlist</span>
+        <span>🛒 Cart</span>
+
+    </div>
+
+</header>
+
+
+<!-- NAVIGATION -->
+<nav class="navbar">
+
+    <a href="/">Home</a>
+    <a href="/">All Jewellery</a>
+    <a href="/gold">Gold Jewellery</a>
+    <a href="/diamond">Diamond Jewellery</a>
+    <a href="/earrings">Earrings</a>
+    <a href="/dailywear">Daily Wear</a>
+    <a href="/gemstone">Gemstone</a>
+    <a href="/wedding">Wedding Jewellery</a>
+    <a href="/gifting">Gifting</a>
+    <a href="/under50k">Under ₹50,000</a>
+    <a href="/price50to1lakh">₹50,000 - ₹1 Lakh</a>
+    <a href="/premium">Premium Jewellery</a>
+    <a href="/newarrivals">New Arrivals</a>
+    <a href="/bestsellers">Best Sellers</a>
+    <a href="/offers">Offers & Discounts</a>
+
+</nav>
+
+
+<!-- MAIN AREA -->
+<div class="main-container">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+
+        <h2>Jewellery</h2>
+
+        <a href="/">💎 All Jewellery</a>
+        <a href="/gold">🟡 Gold Jewellery</a>
+        <a href="/diamond">💠 Diamond Jewellery</a>
+        <a href="/earrings">👂 Earrings</a>
+        <a href="/dailywear">✨ Daily Wear</a>
+        <a href="/gemstone">💎 Gemstone</a>
+        <a href="/wedding">💍 Wedding Jewellery</a>
+        <a href="/gifting">🎁 Gifting</a>
+        <a href="/under50k">💰 Under ₹50,000</a>
+        <a href="/price50to1lakh">💰 ₹50,000 - ₹1 Lakh</a>
+        <a href="/premium">👑 Premium Jewellery</a>
+        <a href="/newarrivals">🆕 New Arrivals</a>
+        <a href="/bestsellers">🔥 Best Sellers</a>
+        <a href="/offers">❤️ Offers & Discounts</a>
+
+    </aside>
+
+
+    <!-- RIGHT CONTENT -->
+    <main class="content">
+
+        <!-- HERO BANNER -->
+        <section class="hero">
+
+            <div class="hero-text">
+
+                <h1>Beautiful Jewellery</h1>
+
+                <h2>Made For Every Special Moment</h2>
+
+                <p>
+                    Discover elegant gold, diamond and gemstone jewellery
+                    for every occasion.
+                </p>
+
+                <button class="shop-button">
+                    Shop Now
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- CATEGORY SECTION -->
+        <section class="section">
+
+            <h2 class="section-title">
+                Shop By Category
+            </h2>
+
+            <div class="category-grid">
+
+                <div class="category-card">
+                    <div class="category-icon">💍</div>
+                    <h3>Rings</h3>
+                    <p>Beautiful rings for every occasion</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">👂</div>
+                    <h3>Earrings</h3>
+                    <p>Elegant earrings for daily wear</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">📿</div>
+                    <h3>Necklaces</h3>
+                    <p>Stylish necklaces and chains</p>
+                </div>
+
+                <div class="category-card">
+                    <div class="category-icon">💎</div>
+                    <h3>Diamond</h3>
+                    <p>Premium diamond jewellery</p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PRODUCTS -->
+        <section class="section">
+
+            <h2 class="section-title">
+                Best Selling Jewellery
+            </h2>
+
+            <div class="product-grid">
+
+                <!-- GOLD RING -->
+                <a href="/product/gold-ring" class="product-link">
+
+                    <div class="product-card">
+
+                        <div class="product-image">
+                            💍
+                        </div>
+
+                        <h3>Elegant Gold Ring</h3>
+
+                        <p class="product-description">
+                            Beautiful gold ring for everyday style.
+                        </p>
+
+                        <div class="price">
+                            ₹24,999
+                        </div>
+
+                        <button class="cart-button" type="button">
+                            Add to Cart
+                        </button>
+
+                    </div>
+
+                </a>
+
+
+                <!-- GOLD NECKLACE -->
+                <div class="product-card">
+
+                    <div class="product-image">
+                        📿
+                    </div>
+
+                    <h3>Gold Necklace</h3>
+
+                    <p class="product-description">
+                        Classic necklace for special occasions.
+                    </p>
+
+                    <div class="price">
+                        ₹45,999
+                    </div>
+
+                    <button class="cart-button">
+                        Add to Cart
+                    </button>
+
+                </div>
+
+
+                <!-- DIAMOND EARRINGS -->
+                <div class="product-card">
+
+                    <div class="product-image">
+                        👂
+                    </div>
+
+                    <h3>Diamond Earrings</h3>
+
+                    <p class="product-description">
+                        Elegant diamond earrings for women.
+                    </p>
+
+                    <div class="price">
+                        ₹39,999
+                    </div>
+
+                    <button class="cart-button">
+                        Add to Cart
+                    </button>
+
+                </div>
+
+
+                <!-- GEMSTONE RING -->
+                <div class="product-card">
+
+                    <div class="product-image">
+                        💎
+                    </div>
+
+                    <h3>Gemstone Ring</h3>
+
+                    <p class="product-description">
+                        Beautiful gemstone ring with premium design.
+                    </p>
+
+                    <div class="price">
+                        ₹18,999
+                    </div>
+
+                    <button class="cart-button">
+                        Add to Cart
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- OFFER -->
+        <section class="offer">
+
+            <h2>✨ Special Jewellery Collection ✨</h2>
+
+            <p>
+                Discover our latest collection and find something
+                beautiful for yourself or your loved ones.
+            </p>
+
+            <button class="shop-button">
+                Explore Collection
+            </button>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+
+    <h2>💎 SHINE JEWELS</h2>
+
+    <p>
+        Beautiful Jewellery • Trusted Quality • Elegant Designs
+    </p>
+
+    <p>
+        © 2026 SHINE JEWELS. All Rights Reserved.
+    </p>
+
+</footer>
+```
+
+</body>
+</html>
