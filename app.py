@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+import os
 import sqlite3
+import psycopg2
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -10,42 +12,104 @@ app.secret_key = "shine-jewels-secret-key"
 # DATABASE
 # =========================
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+
+def get_db():
+    """
+    Render par DATABASE_URL available hoga,
+    isliye PostgreSQL use hoga.
+
+    Local computer par DATABASE_URL nahi hoga,
+    isliye SQLite use hoga.
+    """
+
+    if DATABASE_URL:
+        return psycopg2.connect(DATABASE_URL)
+
+    return sqlite3.connect("shine_jewels.db")
+
+
 def create_database():
 
-    conn = sqlite3.connect("shine_jewels.db")
+    conn = get_db()
 
-    # USERS TABLE
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    """)
+    if DATABASE_URL:
+        # =========================
+        # POSTGRESQL - RENDER
+        # =========================
 
-    # CART TABLE
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS cart (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            product_name TEXT NOT NULL,
-            price TEXT NOT NULL,
-            quantity INTEGER DEFAULT 1
-        )
-    """)
+        cursor = conn.cursor()
 
-    # WISHLIST TABLE
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS wishlist (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            product_name TEXT NOT NULL,
-            price TEXT NOT NULL
-        )
-    """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        """)
 
-    conn.commit()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cart (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                price TEXT NOT NULL,
+                quantity INTEGER DEFAULT 1
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS wishlist (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                price TEXT NOT NULL
+            )
+        """)
+
+        conn.commit()
+        cursor.close()
+
+    else:
+        # =========================
+        # SQLITE - LOCAL COMPUTER
+        # =========================
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS cart (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                price TEXT NOT NULL,
+                quantity INTEGER DEFAULT 1
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS wishlist (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                price TEXT NOT NULL
+            )
+        """)
+
+        conn.commit()
+        cursor.close()
+
     conn.close()
 
 
@@ -75,29 +139,47 @@ def register():
 
         try:
 
-            conn = sqlite3.connect(
-                "shine_jewels.db",
-                timeout=10
-            )
+            conn = get_db()
+            cursor = conn.cursor()
 
-            conn.execute(
-                """
-                INSERT INTO users (name, email, password)
-                VALUES (?, ?, ?)
-                """,
-                (name, email, hashed_password)
-            )
+            if DATABASE_URL:
+
+                cursor.execute(
+                    """
+                    INSERT INTO users (name, email, password)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (name, email, hashed_password)
+                )
+
+            else:
+
+                cursor.execute(
+                    """
+                    INSERT INTO users (name, email, password)
+                    VALUES (?, ?, ?)
+                    """,
+                    (name, email, hashed_password)
+                )
 
             conn.commit()
+
+            cursor.close()
             conn.close()
 
             return redirect(url_for("login"))
 
-        except sqlite3.IntegrityError:
+        except Exception as e:
 
-            return "Email already registered. Please use another email."
+            try:
+                conn.rollback()
+                conn.close()
+            except:
+                pass
 
-        except sqlite3.OperationalError as e:
+            if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+
+                return "Email already registered. Please use another email."
 
             return f"Database error: {e}"
 
@@ -116,19 +198,32 @@ def login():
         email = request.form["email"]
         password = request.form["password"]
 
-        conn = sqlite3.connect(
-            "shine_jewels.db",
-            timeout=10
-        )
+        conn = get_db()
+        cursor = conn.cursor()
 
-        user = conn.execute(
-            """
-            SELECT * FROM users
-            WHERE email = ?
-            """,
-            (email,)
-        ).fetchone()
+        if DATABASE_URL:
 
+            cursor.execute(
+                """
+                SELECT * FROM users
+                WHERE email = %s
+                """,
+                (email,)
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                SELECT * FROM users
+                WHERE email = ?
+                """,
+                (email,)
+            )
+
+        user = cursor.fetchone()
+
+        cursor.close()
         conn.close()
 
         if user and check_password_hash(
@@ -173,45 +268,92 @@ def add_to_cart():
 
     user_id = session["user_id"]
 
-    conn = sqlite3.connect("shine_jewels.db")
+    conn = get_db()
+    cursor = conn.cursor()
 
     # Check if product already exists
-    existing = conn.execute(
-        """
-        SELECT id, quantity
-        FROM cart
-        WHERE user_id = ?
-        AND product_name = ?
-        """,
-        (user_id, product_name)
-    ).fetchone()
 
-    if existing:
+    if DATABASE_URL:
 
-        # Product already exists
-        # Increase quantity
-        conn.execute(
+        cursor.execute(
             """
-            UPDATE cart
-            SET quantity = quantity + 1
-            WHERE id = ?
+            SELECT id, quantity
+            FROM cart
+            WHERE user_id = %s
+            AND product_name = %s
             """,
-            (existing[0],)
+            (user_id, product_name)
         )
 
     else:
 
-        # New product
-        conn.execute(
+        cursor.execute(
             """
-            INSERT INTO cart
-            (user_id, product_name, price, quantity)
-            VALUES (?, ?, ?, ?)
+            SELECT id, quantity
+            FROM cart
+            WHERE user_id = ?
+            AND product_name = ?
             """,
-            (user_id, product_name, price, 1)
+            (user_id, product_name)
         )
 
+    existing = cursor.fetchone()
+
+    if existing:
+
+        # Increase quantity
+
+        if DATABASE_URL:
+
+            cursor.execute(
+                """
+                UPDATE cart
+                SET quantity = quantity + 1
+                WHERE id = %s
+                """,
+                (existing[0],)
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                UPDATE cart
+                SET quantity = quantity + 1
+                WHERE id = ?
+                """,
+                (existing[0],)
+            )
+
+    else:
+
+        # Add new product
+
+        if DATABASE_URL:
+
+            cursor.execute(
+                """
+                INSERT INTO cart
+                (user_id, product_name, price, quantity)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (user_id, product_name, price, 1)
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                INSERT INTO cart
+                (user_id, product_name, price, quantity)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, product_name, price, 1)
+            )
+
     conn.commit()
+
+    cursor.close()
     conn.close()
 
     return redirect(url_for("cart"))
@@ -227,17 +369,34 @@ def cart():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    conn = sqlite3.connect("shine_jewels.db")
+    conn = get_db()
+    cursor = conn.cursor()
 
-    items = conn.execute(
-        """
-        SELECT id, product_name, price, quantity
-        FROM cart
-        WHERE user_id = ?
-        """,
-        (session["user_id"],)
-    ).fetchall()
+    if DATABASE_URL:
 
+        cursor.execute(
+            """
+            SELECT id, product_name, price, quantity
+            FROM cart
+            WHERE user_id = %s
+            """,
+            (session["user_id"],)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT id, product_name, price, quantity
+            FROM cart
+            WHERE user_id = ?
+            """,
+            (session["user_id"],)
+        )
+
+    items = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
     return render_template(
