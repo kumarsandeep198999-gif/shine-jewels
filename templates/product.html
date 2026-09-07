@@ -1,4 +1,4 @@
-conn.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -25,9 +25,31 @@ conn.<!DOCTYPE html>
     </div>
 
     <div class="header-icons">
-        <span>👤 Account</span>
-        <span>❤️ Wishlist</span>
-        <span>🛒 Cart</span>
+
+        {% if session.get("user_id") %}
+
+            <span>👤 {{ session.get("user_name") }}</span>
+
+            <a href="/logout" class="logout-link">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="/login">
+                👤 Account
+            </a>
+
+        {% endif %}
+
+        <a href="{{ url_for('wishlist') }}">
+            ❤️ Wishlist
+        </a>
+
+        <a href="{{ url_for('cart') }}">
+            🛒 Cart
+        </a>
+
     </div>
 
 </header>
@@ -78,25 +100,52 @@ conn.<!DOCTYPE html>
         </ul>
 
         <div class="quantity">
+
             <label>Quantity:</label>
 
             <input type="number"
                    value="1"
                    min="1">
+
         </div>
 
+
+        <!-- ADD TO CART -->
+
         <form method="POST" action="/add-to-cart">
-    <input type="hidden" name="product_name" value="{{ product.name }}">
-    <input type="hidden" name="price" value="{{ product.price }}">
 
-    <button type="submit" class="cart-button">
-        🛒 Add to Cart
-    </button>
-</form>
+            <input type="hidden"
+                   name="product_name"
+                   value="{{ product.name }}">
 
-        <button class="shop-button">
-            ❤️ Add to Wishlist
-        </button>
+            <input type="hidden"
+                   name="price"
+                   value="{{ product.price }}">
+
+            <button type="submit" class="cart-button">
+                🛒 Add to Cart
+            </button>
+
+        </form>
+
+
+        <!-- ADD TO WISHLIST -->
+
+        <form method="POST" action="/add-to-wishlist">
+
+            <input type="hidden"
+                   name="product_name"
+                   value="{{ product.name }}">
+
+            <input type="hidden"
+                   name="price"
+                   value="{{ product.price }}">
+
+            <button type="submit" class="shop-button">
+                ❤️ Add to Wishlist
+            </button>
+
+        </form>
 
     </div>
 

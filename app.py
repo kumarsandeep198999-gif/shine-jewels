@@ -16,13 +16,6 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
 def get_db():
-    """
-    Render par DATABASE_URL available hoga,
-    isliye PostgreSQL use hoga.
-
-    Local computer par DATABASE_URL nahi hoga,
-    isliye SQLite use hoga.
-    """
 
     if DATABASE_URL:
         return psycopg2.connect(DATABASE_URL)
@@ -35,6 +28,7 @@ def create_database():
     conn = get_db()
 
     if DATABASE_URL:
+
         # =========================
         # POSTGRESQL - RENDER
         # =========================
@@ -73,6 +67,7 @@ def create_database():
         cursor.close()
 
     else:
+
         # =========================
         # SQLITE - LOCAL COMPUTER
         # =========================
@@ -406,6 +401,132 @@ def cart():
 
 
 # =========================
+# WISHLIST
+# =========================
+
+@app.route("/wishlist")
+def wishlist():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    if DATABASE_URL:
+
+        cursor.execute(
+            """
+            SELECT id, product_name, price
+            FROM wishlist
+            WHERE user_id = %s
+            """,
+            (session["user_id"],)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT id, product_name, price
+            FROM wishlist
+            WHERE user_id = ?
+            """,
+            (session["user_id"],)
+        )
+
+    items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        "wishlist.html",
+        items=items
+    )
+
+
+# =========================
+# ADD TO WISHLIST
+# =========================
+
+@app.route("/add-to-wishlist", methods=["POST"])
+def add_to_wishlist():
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    product_name = request.form["product_name"]
+    price = request.form["price"]
+
+    user_id = session["user_id"]
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check if product already exists
+
+    if DATABASE_URL:
+
+        cursor.execute(
+            """
+            SELECT id
+            FROM wishlist
+            WHERE user_id = %s
+            AND product_name = %s
+            """,
+            (user_id, product_name)
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            SELECT id
+            FROM wishlist
+            WHERE user_id = ?
+            AND product_name = ?
+            """,
+            (user_id, product_name)
+        )
+
+    existing = cursor.fetchone()
+
+    # Add only if not already in wishlist
+
+    if not existing:
+
+        if DATABASE_URL:
+
+            cursor.execute(
+                """
+                INSERT INTO wishlist
+                (user_id, product_name, price)
+                VALUES (%s, %s, %s)
+                """,
+                (user_id, product_name, price)
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                INSERT INTO wishlist
+                (user_id, product_name, price)
+                VALUES (?, ?, ?)
+                """,
+                (user_id, product_name, price)
+            )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for("wishlist"))
+
+
+# =========================
 # JEWELLERY PAGES
 # =========================
 
@@ -532,6 +653,7 @@ try:
     create_database()
 except Exception as e:
     print("Database initialization error:", e)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
