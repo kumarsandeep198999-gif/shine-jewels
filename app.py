@@ -528,8 +528,10 @@ def product(product_name):
 # START SERVER
 # =========================
 
-if __name__ == "__main__":
-
+try:
     create_database()
+except Exception as e:
+    print("Database initialization error:", e)
 
+if __name__ == "__main__":
     app.run(debug=True)
